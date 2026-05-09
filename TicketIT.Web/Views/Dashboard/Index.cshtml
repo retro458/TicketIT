@@ -1,0 +1,85 @@
+@model List<TicketIT.Web.ViewModels.Tickets.TicketViewModel>
+@{ ViewData["Title"] = "Dashboard"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold"><i class="bi bi-speedometer2"></i> Dashboard</h4>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h6 class="card-title">Abiertos</h6>
+                <h2>@Model.Count(t => t.Estado == "Abierto")</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h6 class="card-title">En Progreso</h6>
+                <h2>@Model.Count(t => t.Estado == "En Progreso")</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h6 class="card-title">En Espera</h6>
+                <h2>@Model.Count(t => t.Estado == "En Espera")</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-secondary">
+            <div class="card-body">
+                <h6 class="card-title">Cerrados</h6>
+                <h2>@Model.Count(t => t.Estado == "Cerrado")</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h6 class="mb-0">Todos los Tickets</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Título</th>
+                        <th>Cliente</th>
+                        <th>Técnico</th>
+                        <th>Estado</th>
+                        <th>Prioridad</th>
+                        <th>Creado</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ticket in Model)
+                    {
+                        <tr>
+                            <td><span class="badge bg-secondary">@ticket.Id</span></td>
+                            <td>@ticket.Titulo</td>
+                            <td>@ticket.Cliente</td>
+                            <td>@(ticket.Tecnico ?? "Sin asignar")</td>
+                            <td><span class="badge bg-primary">@ticket.Estado</span></td>
+                            <td><span class="badge bg-warning text-dark">@ticket.Prioridad</span></td>
+                            <td class="small text-muted">@ticket.CreadoEn.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <a asp-controller="Tickets" asp-action="Detalle" 
+                                   asp-route-id="@ticket.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

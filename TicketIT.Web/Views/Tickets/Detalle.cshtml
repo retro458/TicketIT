@@ -1,0 +1,108 @@
+@model TicketIT.Web.ViewModels.Tickets.TicketViewModel
+@{ ViewData["Title"] = $"Ticket #{Model.Id}"; }
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-ticket-detailed"></i> Ticket #@Model.Id</h5>
+                <span class="badge bg-primary">@Model.Estado</span>
+            </div>
+            <div class="card-body">
+                <h6 class="fw-bold">@Model.Titulo</h6>
+                <p class="text-muted">@Model.Descripcion</p>
+                <hr />
+                <div class="row small text-muted">
+                    <div class="col-6">
+                        <p><i class="bi bi-person"></i> <strong>Cliente:</strong> @Model.Cliente</p>
+                        <p><i class="bi bi-person-check"></i> <strong>Técnico:</strong> @(Model.Tecnico ?? "Sin asignar")</p>
+                    </div>
+                    <div class="col-6">
+                        <p><i class="bi bi-flag"></i> <strong>Prioridad:</strong> @Model.Prioridad</p>
+                        <p><i class="bi bi-folder"></i> <strong>Categoría:</strong> @(Model.Categoria ?? "—")</p>
+                    </div>
+                    <div class="col-12">
+                        <p><i class="bi bi-calendar"></i> <strong>Creado:</strong> @Model.CreadoEn.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-chat-dots"></i> Chat</h6>
+            </div>
+            <div class="card-body" id="chat-mensajes" style="height:300px;overflow-y:auto">
+                <p class="text-muted text-center small">Cargando mensajes...</p>
+            </div>
+            <div class="card-footer">
+                <div class="input-group">
+                    <input type="text" id="chat-input" class="form-control form-control-sm" placeholder="Escribe un mensaje..." />
+                    <button class="btn btn-primary btn-sm" id="btn-enviar">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+                <small id="typing-indicator" class="text-muted"></small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+    <script>
+        const ticketId = @Model.Id;
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/chat")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("RecibirMensaje", (mensaje) => {
+            agregarMensaje(mensaje);
+        });
+
+        connection.on("UsuarioEscribiendo", (nombre) => {
+            document.getElementById("typing-indicator").textContent = `${nombre} está escribiendo...`;
+            setTimeout(() => document.getElementById("typing-indicator").textContent = "", 2000);
+        });
+
+        connection.start().then(async () => {
+            await connection.invoke("UnirseATicket", ticketId);
+            cargarMensajes();
+        });
+
+        async function cargarMensajes() {
+            const res = await fetch(`/api/Chat/${ticketId}`);
+            const mensajes = await res.json();
+            mensajes.forEach(agregarMensaje);
+        }
+
+        function agregarMensaje(m) {
+            const div = document.createElement("div");
+            div.className = "mb-2";
+            div.innerHTML = `
+                <small class="text-muted">${m.emisor} · ${new Date(m.creadoEn).toLocaleTimeString()}</small>
+                <div class="bg-light rounded p-2 small">${m.contenido}</div>`;
+            const container = document.getElementById("chat-mensajes");
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        document.getElementById("btn-enviar").addEventListener("click", async () => {
+            const input = document.getElementById("chat-input");
+            if (!input.value.trim()) return;
+            await connection.invoke("EnviarMensaje", {
+                ticketId: ticketId,
+                contenido: input.value,
+                tipoMensaje: "text",
+                esPrivado: false
+            });
+            input.value = "";
+        });
+
+        document.getElementById("chat-input").addEventListener("input", () => {
+            connection.invoke("Escribiendo", ticketId);
+        });
+    </script>
+}

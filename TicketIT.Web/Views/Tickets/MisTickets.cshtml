@@ -1,0 +1,81 @@
+@model List<TicketIT.Web.ViewModels.Tickets.TicketViewModel>
+@{ ViewData["Title"] = "Mis Tickets"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold"><i class="bi bi-list-task"></i> Mis Tickets</h4>
+    @if (User.IsInRole("Cliente"))
+    {
+        <a asp-action="Crear" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo Ticket
+        </a>
+    }
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-inbox fs-1"></i>
+        <p class="mt-2">No tienes tickets aún.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Título</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
+                    <th>Categoría</th>
+                    <th>Creado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ticket in Model)
+                {
+                    <tr>
+                        <td><span class="badge bg-secondary">@ticket.Id</span></td>
+                        <td>@ticket.Titulo</td>
+                        <td>
+                            <span class="badge @GetEstadoBadge(ticket.Estado)">@ticket.Estado</span>
+                        </td>
+                        <td>
+                            <span class="badge @GetPrioridadBadge(ticket.Prioridad)">@ticket.Prioridad</span>
+                        </td>
+                        <td>@(ticket.Categoria ?? "—")</td>
+                        <td class="small text-muted">@ticket.CreadoEn.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <a asp-action="Detalle" asp-route-id="@ticket.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@functions {
+    string GetEstadoBadge(string estado) => estado switch
+    {
+        "Abierto" => "bg-success",
+        "En Progreso" => "bg-primary",
+        "En Espera" => "bg-warning text-dark",
+        "Resuelto" => "bg-info text-dark",
+        "Cerrado" => "bg-secondary",
+        _ => "bg-light text-dark"
+    };
+
+    string GetPrioridadBadge(string prioridad) => prioridad switch
+    {
+        "Critica" => "bg-danger",
+        "Alta" => "bg-warning text-dark",
+        "Media" => "bg-primary",
+        "Baja" => "bg-secondary",
+        _ => "bg-light text-dark"
+    };
+}
