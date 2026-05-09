@@ -184,3 +184,12 @@ En Swagger (`http://localhost:5065/swagger`) usa `POST /api/auth/register`:
 | `No such host` al conectar DBeaver | Host mal escrito | Usa `localhost` no `127.0.0.1` |
 | Tablas vacías después del restore | El backup no incluyó datos | Ejecuta el script de datos iniciales del paso 3 |
 | `dotnet: command not found` | .NET no instalado | Instala .NET 9 SDK y reinicia la terminal |
+
+
+## Pendientes
+
+- [ ] OAuth con Google y Microsoft
+- [ ] Notificaciones por email
+- [ ] Mejoras de UI/UX
+- [ ] Tests unitarios
+- [ ] Despliegue en producción con Docker
